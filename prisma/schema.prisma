@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- USUÁRIOS ---
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+// --- CATEGORIAS ---
+model Category {
+  id         String    @id @default(uuid())
+  name       String
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now())
+
+  products Product[]
+
+  @@map("categories")
+}
+
+// --- PRODUTOS ---
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  price       String
+  description String
+  banner      String
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @default(now())
+
+  category    Category @relation(fields: [category_id], references: [id])
+  category_id String
+
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+// --- Orders ---
+model Order {
+  id         String    @id @default(uuid())
+  table      Int       // Número da mesa
+  status     Boolean   @default(false) // false = esperando, true = pronto
+  draft      Boolean   @default(true)  // true = rascunho (ainda pedindo), false = enviado pra cozinha
+  name       String?   // Nome do cliente (opcional)
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now())
+
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String    @id @default(uuid())
+  amount     Int       // Quantidade (ex: 2 pizzas)
+  created_at DateTime? @default(now())
+  updated_at DateTime? @default(now())
+
+  order      Order   @relation(fields: [order_id], references: [id])
+  product    Product @relation(fields: [product_id], references: [id])
+
+  order_id   String
+  product_id String
+
+  @@map("order_items")
+}
